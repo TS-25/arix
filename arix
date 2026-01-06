@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+cd /var/www/pterodactyl
+wget -O arix.zip https://github.com/TS-25/arix/releases/latest/download/arix.zip
+unzip -o arix.zip
+cp -R arix/* .
+cp -R arix/.* . 2>/dev/null
+rm -rf arix
+curl -sL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+apt-get install -y nodejs
+npm install -g yarn
+yarn install
+yarn add react-paypal-checkout-button @paypal/paypal-js
+export NODE_OPTIONS=--openssl-legacy-provider 
+yarn run build:production
+php artisan migrate --force
+php artisan optimize:clear
+chown -R www-data:www-data /var/www/pterodactyl/*
+chmod -R 755 storage
