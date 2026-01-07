@@ -1,20 +1,94 @@
 #!/bin/bash
 
+# ==============================
+# ARIX THEME INSTALLER FOR PTERODACTYL
+# ==============================
 
-cd /var/www/pterodactyl
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+NC="\e[0m"
+
+clear
+
+echo -e "${BLUE}"
+echo "=================================================="
+echo "        ARIX THEME INSTALLER (PTERODACTYL)"
+echo "=================================================="
+echo -e "${NC}"
+
+echo -e "${RED}⚠️  WARNING!${NC}"
+echo -e "${YELLOW}"
+echo "This process will:"
+echo " - Overwrite Pterodactyl panel files"
+echo " - Rebuild frontend assets"
+echo " - Run database migrations"
+echo
+echo "⚠️  Your Pterodactyl panel will be FRESH / RESET"
+echo "⚠️  Make sure you have a BACKUP before continuing"
+echo -e "${NC}"
+
+echo
+read -p "Do you want to continue? (yes/no): " CONFIRM
+
+case "$CONFIRM" in
+  yes|y|Y)
+    echo -e "${GREEN}✔ Proceeding with installation...${NC}"
+    ;;
+  no|n|N)
+    echo -e "${RED}✖ Installation cancelled by user.${NC}"
+    exit 1
+    ;;
+  *)
+    echo -e "${RED}✖ Invalid input. Please type yes or no.${NC}"
+    exit 1
+    ;;
+esac
+
+echo
+echo -e "${BLUE}▶ Changing directory to Pterodactyl...${NC}"
+cd /var/www/pterodactyl || exit 1
+
+echo -e "${BLUE}▶ Downloading ARIX theme...${NC}"
 wget -O arix.zip https://github.com/TS-25/arix/releases/latest/download/arix.zip
+
+echo -e "${BLUE}▶ Extracting files...${NC}"
 unzip -o arix.zip
+
+echo -e "${BLUE}▶ Copying theme files...${NC}"
 cp -R arix/* .
 cp -R arix/.* . 2>/dev/null
-rm -rf arix
+rm -rf arix arix.zip
+
+echo -e "${BLUE}▶ Installing Node.js 22...${NC}"
 curl -sL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 apt-get install -y nodejs
+
+echo -e "${BLUE}▶ Installing Yarn...${NC}"
 npm install -g yarn
+
+echo -e "${BLUE}▶ Installing frontend dependencies...${NC}"
 yarn install
 yarn add react-paypal-checkout-button @paypal/paypal-js
-export NODE_OPTIONS=--openssl-legacy-provider 
+
+export NODE_OPTIONS=--openssl-legacy-provider
+
+echo -e "${BLUE}▶ Building production assets...${NC}"
 yarn run build:production
+
+echo -e "${BLUE}▶ Running database migrations...${NC}"
 php artisan migrate --force
+
+echo -e "${BLUE}▶ Clearing and optimizing cache...${NC}"
 php artisan optimize:clear
+
+echo -e "${BLUE}▶ Setting permissions...${NC}"
 chown -R www-data:www-data /var/www/pterodactyl/*
 chmod -R 755 storage
+
+echo
+echo -e "${GREEN}=============================================="
+echo -e "✔ ARIX THEME INSTALLED SUCCESSFULLY!"
+echo -e "✔ Please restart your web server if needed"
+echo -e "==============================================${NC}"
