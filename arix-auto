@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cd /var/www/pterodactyl
+wget https://github.com/TS-25/SRJ-THEME/releases/download/V1.0.0/pterodactyl.zip
+unzip pterodactyl.zip
+cp -r pterodactyl/* /var/www/pterodactyl/
+rm -rf pterodactyl 
+# Ubuntu/Debian
+curl -sL https://deb.nodesource.com/setup_22.x | sudo -E bash - 
+sudo apt install -y nodejs
+npm i -g yarn # Install Yarn
+
+cd /var/www/pterodactyl
+yarn # Installs panel build dependencies
+
+cd /var/www/pterodactyl
+export NODE_OPTIONS=--openssl-legacy-provider # for NodeJS v17+
+yarn build:production # Build panel
+
+cd /var/www/pterodactyl
+php artisan arix
